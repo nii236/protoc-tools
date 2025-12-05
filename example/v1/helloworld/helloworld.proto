@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package helloworld.v1;
+
+option go_package = "nxr-go/gen/proto/v1/helloworld";
+
+service HelloWorldService {
+  rpc SayHello(HelloRequest) returns (HelloResponse) {
+    option idempotency_level = NO_SIDE_EFFECTS;
+  }
+  rpc StreamHellos(StreamHelloRequest) returns (stream HelloEvent) {}
+  rpc StreamCounter(StreamCounterRequest) returns (stream CounterEvent) {}
+}
+
+message HelloRequest {
+  string name = 1;
+  optional string message = 2;
+}
+
+message StreamHelloRequest {
+  string name = 1;
+  optional int32 count = 2;
+  optional int32 interval_seconds = 3;
+}
+
+message StreamCounterRequest {
+  int32 start_value = 1;
+  int32 increment = 2;
+  optional int32 max_value = 3;
+  optional int32 interval_ms = 4;
+}
+
+message HelloResponse {
+  string greeting = 1;
+  int64 timestamp = 2;
+}
+
+message HelloEvent {
+  string greeting = 1;
+  int32 sequence_number = 2;
+  int64 timestamp = 3;
+}
+
+message CounterEvent {
+  int32 value = 1;
+  int32 increment = 2;
+  int64 timestamp = 3;
+  bool is_final = 4;
+}

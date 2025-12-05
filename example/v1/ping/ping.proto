@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package ping.v1;
+
+option go_package = "nxr-go/gen/proto/v1/ping";
+
+service HelloWorldService {
+  rpc Ping(PingRequest) returns (PingResponse) {}
+}
+
+message PingRequest {
+  int64 timestamp = 1;
+}
+
+message PingResponse {
+  string message = 1;
+  int64 request_timestamp = 2;
+  int64 response_timestamp = 3;
+}
