@@ -2,7 +2,7 @@
 # ConnectRPC client for HelloWorldService service
 # Auto-generated - DO NOT EDIT
 
-extends "../connectrpc_client.gd"
+extends "../../connectrpc_client.gd"
 signal ping_response(response: Dictionary)
 
 # Ping - Unary RPC

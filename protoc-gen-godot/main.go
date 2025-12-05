@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"log/slog"
 	"path/filepath"
 	"strings"
 	"text/template"
@@ -15,9 +16,20 @@ func main() {
 	protogen.Options{}.Run(func(gen *protogen.Plugin) error {
 		gen.SupportedFeatures = uint64(pluginpb.CodeGeneratorResponse_FEATURE_PROTO3_OPTIONAL)
 
+		// Generate base client in the root output directory
+		baseClientGenerated := false
+
 		for _, f := range gen.Files {
 			if !f.Generate {
 				continue
+			}
+
+			// Generate base client once - use protogen to avoid path issues
+			if !baseClientGenerated {
+				// Generate the base client using protogen so it gets the right output directory
+				baseFile := gen.NewGeneratedFile("connectrpc_client.gd", "")
+				baseFile.P(connectRPCClientCode)
+				baseClientGenerated = true
 			}
 
 			generateFile(gen, f)
@@ -30,28 +42,38 @@ func generateFile(gen *protogen.Plugin, file *protogen.File) {
 	if len(file.Services) == 0 {
 		return
 	}
-
-	// Generate base class in the same package as the service
-	generateConnectRPCBaseInPackage(gen, file.GoImportPath)
+	slog.Debug("generate file", "file", file.GoImportPath, "services", len(file.Services))
 
 	filename := file.GeneratedFilenamePrefix + ".gd"
 	g := gen.NewGeneratedFile(filename, file.GoImportPath)
-
 	generateGDScript(g, file)
 }
 
 func generateGDScript(g *protogen.GeneratedFile, file *protogen.File) {
-
 	// Generate the GDScript client with helper functions
 	tmpl := template.Must(template.New("gdscript").Funcs(template.FuncMap{
 		"snake_case":    toSnakeCase,
 		"default_value": getDefaultValue,
 	}).Parse(gdscriptTemplate))
 
+	// Calculate relative path from current file to base (where connectrpc_client.gd is)
+	packageParts := strings.Split(string(file.GoImportPath), "/")
+	var pathParts []string
+	for range packageParts {
+		if len(packageParts) > 0 {
+			pathParts = append(pathParts, "..")
+		}
+	}
+	relativePathToBase := ""
+	if len(pathParts) > 0 {
+		relativePathToBase = strings.Join(pathParts, "/") + "/"
+	}
+
 	data := TemplateData{
-		FileName:    filepath.Base(string(file.Desc.Path())),
-		PackageName: string(file.GoPackageName),
-		Services:    make([]ServiceData, 0, len(file.Services)),
+		FileName:           filepath.Base(string(file.Desc.Path())),
+		PackageName:        string(file.GoPackageName),
+		RelativePathToBase: relativePathToBase,
+		Services:           make([]ServiceData, 0, len(file.Services)),
 	}
 
 	for _, service := range file.Services {
@@ -136,12 +158,6 @@ func getGDScriptType(field *protogen.Field) string {
 	}
 }
 
-func generateConnectRPCBaseInPackage(gen *protogen.Plugin, goImportPath protogen.GoImportPath) {
-	// Generate the ConnectRPC base class in the package directory
-	g := gen.NewGeneratedFile("connectrpc_client.gd", goImportPath)
-	g.P(connectRPCClientCode)
-}
-
 // Helper functions for template
 func toSnakeCase(s string) string {
 	var result strings.Builder
@@ -176,9 +192,10 @@ func getDefaultValue(gdType string) string {
 }
 
 type TemplateData struct {
-	FileName    string
-	PackageName string
-	Services    []ServiceData
+	FileName           string
+	PackageName        string
+	RelativePathToBase string
+	Services           []ServiceData
 }
 
 type ServiceData struct {
@@ -209,7 +226,7 @@ const gdscriptTemplate = `# Generated from {{ .FileName }}
 # ConnectRPC client for {{ range .Services }}{{ .Name }}{{ end }} service
 # Auto-generated - DO NOT EDIT
 
-extends "../connectrpc_client.gd"
+extends "{{ .RelativePathToBase }}connectrpc_client.gd"
 
 {{- range .Services }}
 {{- range .Methods }}

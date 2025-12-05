@@ -1,13 +1,5 @@
 version: v2
 plugins:
-  - local: ["go", "run", "./cmd"]
+  - local: ["go", "run", "./protoc-gen-godot"]
     out: gen
     strategy: all
-managed:
-  enabled: true
-  override:
-    - file_option: go_package_prefix
-      value: nxr-go/gen
-  disable:
-    - file_option: go_package
-      module: buf.build/bufbuild/protovalidate

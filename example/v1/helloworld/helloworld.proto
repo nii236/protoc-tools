@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package helloworld.v1;
 
-option go_package = "nxr-go/gen/proto/v1/helloworld";
+option go_package = "v1/helloworld";
 
 service HelloWorldService {
   rpc SayHello(HelloRequest) returns (HelloResponse) {

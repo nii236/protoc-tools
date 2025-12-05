@@ -2,7 +2,7 @@
 # ConnectRPC client for HelloWorldService service
 # Auto-generated - DO NOT EDIT
 
-extends "../connectrpc_client.gd"
+extends "../../connectrpc_client.gd"
 signal say_hello_response(response: Dictionary)
 signal stream_hellos_event(event: Dictionary)
 signal stream_counter_event(event: Dictionary)
