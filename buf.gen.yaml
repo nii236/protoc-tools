@@ -1,5 +1,12 @@
 version: v2
 plugins:
   - local: ["go", "run", "./protoc-gen-godot"]
-    out: gen
+    out: gen/gd
     strategy: all
+  - local: ["go", "run", "./protoc-gen-streammanager"]
+    out: gen/go
+    opt: paths=source_relative
+    strategy: all
+  - local: protoc-gen-go
+    out: gen/go
+    opt: paths=source_relative

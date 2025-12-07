@@ -1,14 +1,22 @@
 # protoc-gen-godot
 
-A Protocol Buffer compiler plugin that generates GDScript client code for Connect-RPC services in Godot.
+Protocol Buffer compiler plugins for generating both GDScript client code for Godot games and Go stream management utilities for Connect-RPC services.
 
 ## Features
 
-- Generates GDScript clients for gRPC/Connect-RPC services
+### GDScript Client Generator (`protoc-gen-godot`)
+- Generates GDScript clients for gRPC/Connect-RPC services in Godot
 - Supports both unary and streaming RPC calls
 - Automatic JSON serialization/deserialization
 - Idempotent method detection for GET requests
 - Built-in error handling and response signals
+
+### Go Stream Manager Generator (`protoc-gen-streammanager`)
+- Generates type-safe stream managers for Connect-RPC server-side streaming
+- Thread-safe stream lifecycle management with session tracking
+- Filtered broadcasting to multiple streams based on metadata
+- Built-in implementations: full, no-op (testing), and debug variants
+- Automatic cleanup on context cancellation
 
 ## Installation
 
