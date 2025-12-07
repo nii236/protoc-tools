@@ -1,4 +1,4 @@
-module protoc-gen-godot
+module github.com/nii236/protoc-tools
 
 go 1.25.1
 
